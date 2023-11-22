@@ -2,8 +2,13 @@ stages:
   - build
   - sonarcloud-check
   - trivy-fs-check
+  - docker-build
+  - trivy-image-scan
 
-Node Code Build:
+variables:
+  IMAGE_TAG: ${CI_REGISTRY_IMAGE}:$CI_COMMIT_SHORT_SHA
+
+Code Build:
     stage: build
     image: node:16
     script:
@@ -38,4 +43,26 @@ Trivy File System Check:
     - trivy --version
     - trivy fs .
   allow_failure: true
+
+Docker Image Build And Push:
+  stage: docker-build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script: 
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build  --build-arg REACT_APP_RAPID_API_KEY=$REACT_APP_RAPID_API_KEY -t $IMAGE_TAG .
+    - docker images
+    - docker push $IMAGE_TAG
+
+Trivy Docker Image Scan:
+  stage: trivy-image-scan
+  image:
+    name: docker.io/aquasec/trivy:latest
+    entrypoint: [""]
+  script:
+    - trivy --version
+    - trivy image $IMAGE_TAG
+
   
