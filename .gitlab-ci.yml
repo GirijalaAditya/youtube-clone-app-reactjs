@@ -1,0 +1,9 @@
+stages:
+  - build
+
+Node Code Build:
+    stage: build
+    image: node:16
+    script:
+        - npm install
+
