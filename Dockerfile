@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:16
+FROM node:16 as BUILD
 
 # Set the working directory in the container
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install app dependencies, including Material-UI 5
-RUN npm install
+RUN npm install && npm update
 
 # Copy the rest of the application code to the working directory
 COPY . .
@@ -21,3 +21,7 @@ EXPOSE 3000
 
 # Define the command to start the app
 CMD ["npm", "start"]
+
+
+FROM nginx:alpine3.18-slim
+COPY --from=BUILD /app/build /usr/share/nginx/html
